@@ -1,7 +1,6 @@
 use super::{MemoryOp, Op, OpEnum, Operation, StackOp, StorageOp, Target};
 use crate::exec_trace::OperationRef;
 use itertools::Itertools;
-use std::convert::TryInto;
 
 /// The `OperationContainer` is meant to store all of the [`Operation`]s that an
 /// [`ExecutionTrace`](crate::exec_trace::ExecutionTrace) performs during its
@@ -43,8 +42,7 @@ impl OperationContainer {
 
     /// Inserts an [`Operation`] into the  container returning a lightwheight
     /// reference to it in the form of an [`OperationRef`] which points to the
-    /// location of the inserted operation inside the container.
-    /// TODO
+    /// location of the inserted operation inside the corresponding container vector.
     pub fn insert<T: Op>(&mut self, op: Operation<T>) -> OperationRef {
         let gc = op.gc();
         match op.op.to_enum() {

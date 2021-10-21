@@ -128,17 +128,19 @@ impl<F: FieldExt> BlockConstants<F> {
     }
 }
 
-/// TODO
+/// Context of a trace, which mutates at every ExecutionStep and provides both a context of
+/// execution and an accumulation of operations we need to generate the witness.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Context {
-    /// TODO The next gc to be used
+    /// The next gc to be used
     pub gc: GlobalCounter,
-    /// TODO
+    /// Container of Operations
     pub container: OperationContainer,
+    // TODO: Add CallContext here
 }
 
 impl Context {
-    /// TODO
+    /// Create a new empty Context
     pub fn new() -> Self {
         Self {
             gc: GlobalCounter::new(),
@@ -146,7 +148,7 @@ impl Context {
         }
     }
 
-    /// TODO
+    /// Push an Operation into the Context.container
     pub fn push_op<T: Op>(&mut self, exec_step: &mut ExecutionStep, op: T) {
         exec_step
             .bus_mapping_instance_mut()
@@ -335,7 +337,7 @@ impl From<(Target, usize)> for OperationRef {
             Target::Memory => Self(Target::Memory, op_ref_data.1),
             Target::Stack => Self(Target::Stack, op_ref_data.1),
             Target::Storage => Self(Target::Storage, op_ref_data.1),
-            _ => unreachable!(),
+            // _ => unreachable!(),
         }
     }
 }

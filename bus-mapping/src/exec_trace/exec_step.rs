@@ -8,7 +8,6 @@ use crate::{
     error::Error,
     evm::{opcodes::Opcode, OpcodeId},
     exec_trace::Context,
-    operation::container::OperationContainer,
 };
 use std::collections::HashMap;
 

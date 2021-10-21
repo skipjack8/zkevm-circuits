@@ -38,7 +38,7 @@ impl From<usize> for ProgramCounter {
 }
 
 impl ProgramCounter {
-    /// TODO
+    /// Increase Self by one
     pub fn inc(&mut self) {
         self.0 += 1;
     }
@@ -72,12 +72,12 @@ impl From<usize> for GlobalCounter {
 }
 
 impl GlobalCounter {
-    /// TODO
+    /// Create a new GlobalCounter with the initial default value
     pub fn new() -> Self {
         Self(0)
     }
 
-    /// TODO
+    /// Increase Self by one
     pub fn inc(&mut self) {
         self.0 += 1;
     }

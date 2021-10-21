@@ -1,12 +1,8 @@
 use super::Opcode;
 use crate::{
     exec_trace::{Context, ExecutionStep},
-    operation::OperationContainer,
     Error,
 };
-
-// /// Number of ops that STOP adds to the container & busmapping
-// const STOP_OP_NUM: usize = 0;
 
 /// Placeholder structure used to implement [`Opcode`] trait over it corresponding to the
 /// [`OpcodeId::STOP`](crate::evm::OpcodeId::STOP) `OpcodeId`.

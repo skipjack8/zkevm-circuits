@@ -7,7 +7,6 @@ mod stop;
 use self::push::Push1;
 use crate::{
     exec_trace::{Context, ExecutionStep},
-    operation::container::OperationContainer,
     Error,
 };
 use core::fmt::Debug;

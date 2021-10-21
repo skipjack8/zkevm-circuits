@@ -9,11 +9,9 @@ pub(crate) mod container;
 pub use super::evm::{
     EthAddress, EvmWord, GlobalCounter, MemoryAddress, StackAddress,
 };
-use crate::error::Error;
 pub use container::OperationContainer;
 use core::cmp::Ordering;
 use core::fmt::Debug;
-use std::convert::TryFrom;
 
 /// Marker that defines whether an Operation performs a `READ` or a `WRITE`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -45,8 +43,8 @@ impl RW {
 /// Enum used to differenciate between EVM Stack, Memory and Storage operations.
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum Target {
-    /// Dummy target to pad meaningful targets
-    Noop,
+    // /// Dummy target to pad meaningful targets
+    // Noop,
     /// Means the target of the operation is the Memory.
     Memory,
     /// Means the target of the operation is the Stack.
@@ -55,9 +53,10 @@ pub enum Target {
     Storage,
 }
 
-/// TODO
-pub trait Op: Eq {
-    /// TODO
+/// Trait used for Operation Kinds.
+pub trait Op: Eq + Ord {
+    /// Turn the Generic Op into an OpEnum so that we can match it into a particular Operation
+    /// Kind.
     fn to_enum(self) -> OpEnum;
 }
 
@@ -67,19 +66,13 @@ pub trait Op: Eq {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MemoryOp {
     rw: RW,
-    // gc: GlobalCounter,
     addr: MemoryAddress,
     value: u8,
 }
 
 impl MemoryOp {
     /// Create a new instance of a `MemoryOp` from it's components.
-    pub fn new(
-        rw: RW,
-        // gc: GlobalCounter,
-        addr: MemoryAddress,
-        value: u8,
-    ) -> MemoryOp {
+    pub fn new(rw: RW, addr: MemoryAddress, value: u8) -> MemoryOp {
         MemoryOp {
             rw,
             // gc,
@@ -98,11 +91,6 @@ impl MemoryOp {
     pub const fn target(&self) -> Target {
         Target::Memory
     }
-
-    /// Returns the [`GlobalCounter`] associated to this Operation.
-    // pub const fn gc(&self) -> GlobalCounter {
-    //     self.gc
-    // }
 
     /// Returns the [`MemoryAddress`] associated to this Operation.
     pub const fn address(&self) -> &MemoryAddress {
@@ -150,19 +138,13 @@ impl Ord for MemoryOp {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StackOp {
     rw: RW,
-    // gc: GlobalCounter,
     addr: StackAddress,
     value: EvmWord,
 }
 
 impl StackOp {
     /// Create a new instance of a `MemoryOp` from it's components.
-    pub const fn new(
-        rw: RW,
-        // gc: GlobalCounter,
-        addr: StackAddress,
-        value: EvmWord,
-    ) -> StackOp {
+    pub const fn new(rw: RW, addr: StackAddress, value: EvmWord) -> StackOp {
         StackOp {
             rw,
             // gc,
@@ -181,11 +163,6 @@ impl StackOp {
     pub const fn target(&self) -> Target {
         Target::Stack
     }
-
-    /// Returns the [`GlobalCounter`] associated to this Operation.
-    // pub const fn gc(&self) -> GlobalCounter {
-    //     self.gc
-    // }
 
     /// Returns the [`StackAddress`] associated to this Operation.
     pub const fn address(&self) -> &StackAddress {
@@ -233,7 +210,6 @@ impl Ord for StackOp {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StorageOp {
     rw: RW,
-    // gc: GlobalCounter,
     address: EthAddress,
     key: EvmWord,
     value: EvmWord,
@@ -244,7 +220,6 @@ impl StorageOp {
     /// Create a new instance of a `StorageOp` from it's components.
     pub const fn new(
         rw: RW,
-        // gc: GlobalCounter,
         address: EthAddress,
         key: EvmWord,
         value: EvmWord,
@@ -270,11 +245,6 @@ impl StorageOp {
     pub const fn target(&self) -> Target {
         Target::Storage
     }
-
-    /// Returns the [`GlobalCounter`] associated to this Operation.
-    // pub const fn gc(&self) -> GlobalCounter {
-    //     self.gc
-    // }
 
     /// Returns the [`EthAddress`] corresponding to this storage operation.
     pub const fn address(&self) -> &EthAddress {
@@ -342,90 +312,28 @@ pub enum OpEnum {
     Storage(StorageOp),
 }
 
-/// TODO
+/// Operation is a Wrapper over a type that implements Op with a GlobalCounter.
 #[derive(Debug, Clone)]
-pub struct Operation<T: Eq> {
+pub struct Operation<T: Op> {
     gc: GlobalCounter,
     op: T,
 }
 
-// // DELETE
-// impl From<&StackOp> for Operation {
-//     fn from(op: &StackOp) -> Self {
-//         Operation::Stack(op.clone())
-//     }
-// }
-//
-// // DELETE
-// impl From<StackOp> for Operation {
-//     fn from(op: StackOp) -> Self {
-//         Operation::Stack(op)
-//     }
-// }
-//
-// // DELETE
-// impl From<&MemoryOp> for Operation {
-//     fn from(op: &MemoryOp) -> Self {
-//         Operation::Memory(op.clone())
-//     }
-// }
-//
-// // DELETE
-// impl From<MemoryOp> for Operation {
-//     fn from(op: MemoryOp) -> Self {
-//         Operation::Memory(op)
-//     }
-// }
-//
-// // DELETE
-// impl From<&StorageOp> for Operation {
-//     fn from(op: &StorageOp) -> Self {
-//         Operation::Storage(op.clone())
-//     }
-// }
-//
-// // DELETE
-// impl From<StorageOp> for Operation {
-//     fn from(op: StorageOp) -> Self {
-//         Operation::Storage(op)
-//     }
-// }
-//
-// // DELETE
-// impl PartialEq for Operation {
-//     fn eq(&self, other: &Operation) -> bool {
-//         match (self, other) {
-//             (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
-//                 stack_op_1.eq(stack_op_2)
-//             }
-//             (
-//                 Operation::Memory(memory_op_1),
-//                 Operation::Memory(memory_op_2),
-//             ) => memory_op_1.eq(memory_op_2),
-//             (
-//                 Operation::Storage(storage_op_1),
-//                 Operation::Storage(storage_op_2),
-//             ) => storage_op_1.eq(storage_op_2),
-//             _ => false,
-//         }
-//     }
-// }
-
-impl<T: Eq> PartialEq for Operation<T> {
+impl<T: Op> PartialEq for Operation<T> {
     fn eq(&self, other: &Operation<T>) -> bool {
         self.op.eq(&other.op) && self.gc == other.gc
     }
 }
 
-impl<T: Eq> Eq for Operation<T> {}
+impl<T: Op> Eq for Operation<T> {}
 
-impl<T: Ord> PartialOrd for Operation<T> {
+impl<T: Op> PartialOrd for Operation<T> {
     fn partial_cmp(&self, other: &Operation<T>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T: Ord> Ord for Operation<T> {
+impl<T: Op> Ord for Operation<T> {
     fn cmp(&self, other: &Operation<T>) -> Ordering {
         match self.op.cmp(&other.op) {
             Ordering::Equal => self.gc.cmp(&other.gc),
@@ -433,35 +341,23 @@ impl<T: Ord> Ord for Operation<T> {
         }
     }
 }
-// impl PartialOrd for Operation {
-//     fn partial_cmp(&self, other: &Operation) -> Option<Ordering> {
-//         match (self, other) {
-//             (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
-//                 stack_op_1.partial_cmp(stack_op_2)
-//             }
-//             (
-//                 Operation::Memory(memory_op_1),
-//                 Operation::Memory(memory_op_2),
-//             ) => memory_op_1.partial_cmp(memory_op_2),
-//             (
-//                 Operation::Storage(storage_op_1),
-//                 Operation::Storage(storage_op_2),
-//             ) => storage_op_1.partial_cmp(storage_op_2),
-//             _ => None,
-//         }
-//     }
-// }
 
 impl<T: Op> Operation<T> {
-    /// TODO
+    /// Create a new Operation from an `op` with a `gc`
     pub fn new(gc: GlobalCounter, op: T) -> Self {
         Self { gc, op }
     }
 
-    /// TODO
+    /// Return this `Operation` `gc`
     pub fn gc(&self) -> GlobalCounter {
         self.gc
     }
+
+    /// Return this `Operation` `op`
+    pub fn op(&self) -> &T {
+        &self.op
+    }
+
     // /// Matches over an `Operation` returning the [`Target`] of the iternal op
     // /// it stores inside.
     // pub const fn target(&self) -> Target {
@@ -517,7 +413,6 @@ impl<T: Op> Operation<T> {
     // }
 }
 
-/*
 #[cfg(test)]
 mod operation_tests {
     use super::*;
@@ -526,24 +421,23 @@ mod operation_tests {
     fn unchecked_op_transmutations_are_safe() {
         let stack_op = StackOp::new(
             RW::WRITE,
-            GlobalCounter(1usize),
             StackAddress::from(1024),
             EvmWord::from(0x40u8),
         );
 
-        let stack_op_as_operation = Operation::from(stack_op.clone());
+        let stack_op_as_operation =
+            Operation::new(GlobalCounter(1usize), stack_op.clone());
 
         let memory_op = MemoryOp::new(
             RW::WRITE,
-            GlobalCounter(1usize),
             MemoryAddress(usize::from(0x40u8)),
             0x40u8,
         );
 
-        let memory_op_as_operation = Operation::from(memory_op.clone());
+        let memory_op_as_operation =
+            Operation::new(GlobalCounter(1usize), memory_op.clone());
 
-        assert_eq!(stack_op, stack_op_as_operation.into_stack_unchecked());
-        assert_eq!(memory_op, memory_op_as_operation.into_memory_unchecked())
+        assert_eq!(stack_op, stack_op_as_operation.op);
+        assert_eq!(memory_op, memory_op_as_operation.op)
     }
 }
-*/

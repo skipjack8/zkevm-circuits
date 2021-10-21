@@ -1,9 +1,7 @@
 use super::Opcode;
 use crate::{
     exec_trace::{Context, ExecutionStep},
-    operation::{
-        container::OperationContainer, EthAddress, StackOp, StorageOp, RW,
-    },
+    operation::{EthAddress, StackOp, StorageOp, RW},
     Error,
 };
 
@@ -66,8 +64,8 @@ mod sload_tests {
     use crate::{
         bytecode,
         evm::{
-            EvmWord, GasCost, GasInfo, GlobalCounter, Memory, OpcodeId,
-            ProgramCounter, Stack, StackAddress, Storage,
+            EvmWord, GasCost, GasInfo, Memory, OpcodeId, Stack, StackAddress,
+            Storage,
         },
         external_tracer, BlockConstants, ExecutionTrace,
     };

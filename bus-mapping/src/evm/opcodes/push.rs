@@ -2,14 +2,10 @@ use core::ops::Deref;
 // Port this to a macro if possible to avoid defining all the PushN
 use super::Opcode;
 use crate::{
-    evm::GlobalCounter,
     exec_trace::{Context, ExecutionStep},
-    operation::{container::OperationContainer, Operation, StackOp, RW},
+    operation::{StackOp, RW},
     Error,
 };
-
-// /// Number of ops that PUSH1 adds to the container & busmapping
-// const PUSH1_OP_NUM: usize = 1;
 
 /// Placeholder structure used to implement [`Opcode`] trait over it corresponding to the
 /// [`OpcodeId::PUSH1`](crate::evm::OpcodeId::PUSH1) `OpcodeId`.
@@ -52,8 +48,7 @@ mod push_tests {
     use crate::{
         bytecode,
         evm::{
-            EvmWord, GasCost, GasInfo, OpcodeId, ProgramCounter, Stack,
-            StackAddress, Storage,
+            EvmWord, GasCost, GasInfo, OpcodeId, Stack, StackAddress, Storage,
         },
         external_tracer, BlockConstants, ExecutionTrace,
     };

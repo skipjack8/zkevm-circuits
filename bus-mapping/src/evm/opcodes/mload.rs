@@ -1,14 +1,11 @@
 use super::Opcode;
 use crate::{
-    evm::{GlobalCounter, MemoryAddress},
+    evm::MemoryAddress,
     exec_trace::{Context, ExecutionStep},
-    operation::{container::OperationContainer, MemoryOp, StackOp, RW},
+    operation::{MemoryOp, StackOp, RW},
     Error,
 };
 use core::convert::TryInto;
-
-/// Number of ops that MLOAD adds to the container & busmapping
-const MLOAD_OP_NUM: usize = 34;
 
 /// Placeholder structure used to implement [`Opcode`] trait over it corresponding to the
 /// [`OpcodeId::MLOAD`](crate::evm::OpcodeId::MLOAD) `OpcodeId`.
@@ -75,8 +72,7 @@ mod mload_tests {
     use crate::{
         bytecode,
         evm::{
-            EvmWord, GasCost, GasInfo, OpcodeId, ProgramCounter, Stack,
-            StackAddress, Storage,
+            EvmWord, GasCost, GasInfo, OpcodeId, Stack, StackAddress, Storage,
         },
         external_tracer, BlockConstants, ExecutionTrace,
     };
