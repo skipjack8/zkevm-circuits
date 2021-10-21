@@ -33,10 +33,7 @@ impl RW {
 
     /// Returns true if the RW corresponds internally to a [`WRITE`](RW::WRITE).
     pub const fn is_write(&self) -> bool {
-        match self {
-            RW::WRITE => true,
-            RW::READ => false,
-        }
+        !self.is_read()
     }
 }
 
@@ -73,12 +70,7 @@ pub struct MemoryOp {
 impl MemoryOp {
     /// Create a new instance of a `MemoryOp` from it's components.
     pub fn new(rw: RW, addr: MemoryAddress, value: u8) -> MemoryOp {
-        MemoryOp {
-            rw,
-            // gc,
-            addr,
-            value,
-        }
+        MemoryOp { rw, addr, value }
     }
 
     /// Returns the internal [`RW`] which says whether the operation corresponds
@@ -121,17 +113,6 @@ impl Ord for MemoryOp {
     }
 }
 
-// impl TryFrom<Operation> for MemoryOp {
-//     type Error = Error;
-//
-//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
-//         match op {
-//             Operation::Memory(memory_op) => Ok(memory_op),
-//             _ => Err(Error::InvalidOpConversion),
-//         }
-//     }
-// }
-
 /// Represents a [`READ`](RW::READ)/[`WRITE`](RW::WRITE) into the stack implied
 /// by an specific [`OpcodeId`](crate::evm::opcodes::ids::OpcodeId) of the
 /// [`ExecutionTrace`](crate::exec_trace::ExecutionTrace).
@@ -145,12 +126,7 @@ pub struct StackOp {
 impl StackOp {
     /// Create a new instance of a `MemoryOp` from it's components.
     pub const fn new(rw: RW, addr: StackAddress, value: EvmWord) -> StackOp {
-        StackOp {
-            rw,
-            // gc,
-            addr,
-            value,
-        }
+        StackOp { rw, addr, value }
     }
 
     /// Returns the internal [`RW`] which says whether the operation corresponds
@@ -193,17 +169,6 @@ impl Ord for StackOp {
     }
 }
 
-// impl TryFrom<Operation> for StackOp {
-//     type Error = Error;
-//
-//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
-//         match op {
-//             Operation::Stack(stack_op) => Ok(stack_op),
-//             _ => Err(Error::InvalidOpConversion),
-//         }
-//     }
-// }
-
 /// Represents a [`READ`](RW::READ)/[`WRITE`](RW::WRITE) into the storage
 /// implied by an specific [`OpcodeId`](crate::evm::opcodes::ids::OpcodeId) of
 /// the [`ExecutionTrace`](crate::exec_trace::ExecutionTrace).
@@ -227,7 +192,6 @@ impl StorageOp {
     ) -> StorageOp {
         StorageOp {
             rw,
-            // gc,
             address,
             key,
             value,
@@ -288,18 +252,6 @@ impl Ord for StorageOp {
     }
 }
 
-// impl TryFrom<Operation> for StorageOp {
-//     type Error = Error;
-//
-//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
-//         match op {
-//             Operation::Storage(storage_op) => Ok(storage_op),
-//             _ => Err(Error::InvalidOpConversion),
-//         }
-//     }
-// }
-
-// DELETE
 /// Generic enum that wraps over all the operation types possible.
 /// In particular [`StackOp`], [`MemoryOp`] and [`StorageOp`].
 #[derive(Debug, Clone)]
