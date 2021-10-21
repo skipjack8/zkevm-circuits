@@ -35,11 +35,12 @@ macro_rules! advance_pc {
 /// The `gc` parameter will be modified inside this macro.
 #[macro_export]
 macro_rules! advance_gc {
-    ($gc:ident) => {{
+    ($gc:expr) => {{
         #[allow(unused_assignments)]
         {
             let temp = $gc;
-            $gc = GlobalCounter::from($gc.0 + 1);
+            $gc.inc();
+            // $gc = GlobalCounter::from($gc.0 + 1);
             temp
         }
     }};

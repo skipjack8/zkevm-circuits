@@ -55,13 +55,19 @@ pub enum Target {
     Storage,
 }
 
+/// TODO
+pub trait Op: Eq {
+    /// TODO
+    fn to_enum(self) -> OpEnum;
+}
+
 /// Represents a [`READ`](RW::READ)/[`WRITE`](RW::WRITE) into the memory implied
 /// by an specific [`OpcodeId`](crate::evm::opcodes::ids::OpcodeId) of the
 /// [`ExecutionTrace`](crate::exec_trace::ExecutionTrace).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MemoryOp {
     rw: RW,
-    gc: GlobalCounter,
+    // gc: GlobalCounter,
     addr: MemoryAddress,
     value: u8,
 }
@@ -70,13 +76,13 @@ impl MemoryOp {
     /// Create a new instance of a `MemoryOp` from it's components.
     pub fn new(
         rw: RW,
-        gc: GlobalCounter,
+        // gc: GlobalCounter,
         addr: MemoryAddress,
         value: u8,
     ) -> MemoryOp {
         MemoryOp {
             rw,
-            gc,
+            // gc,
             addr,
             value,
         }
@@ -94,9 +100,9 @@ impl MemoryOp {
     }
 
     /// Returns the [`GlobalCounter`] associated to this Operation.
-    pub const fn gc(&self) -> GlobalCounter {
-        self.gc
-    }
+    // pub const fn gc(&self) -> GlobalCounter {
+    //     self.gc
+    // }
 
     /// Returns the [`MemoryAddress`] associated to this Operation.
     pub const fn address(&self) -> &MemoryAddress {
@@ -109,38 +115,34 @@ impl MemoryOp {
     }
 }
 
+impl Op for MemoryOp {
+    fn to_enum(self) -> OpEnum {
+        OpEnum::Memory(self)
+    }
+}
+
 impl PartialOrd for MemoryOp {
     fn partial_cmp(&self, other: &MemoryOp) -> Option<Ordering> {
-        match self.address().partial_cmp(other.address()) {
-            None => None,
-            Some(ord) => match ord {
-                std::cmp::Ordering::Equal => self.gc().partial_cmp(&other.gc()),
-                _ => Some(ord),
-            },
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for MemoryOp {
     fn cmp(&self, other: &MemoryOp) -> Ordering {
-        match self.address().cmp(other.address()) {
-            Ordering::Equal => self.gc().cmp(&other.gc()),
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-        }
+        self.address().cmp(other.address())
     }
 }
 
-impl TryFrom<Operation> for MemoryOp {
-    type Error = Error;
-
-    fn try_from(op: Operation) -> Result<Self, Self::Error> {
-        match op {
-            Operation::Memory(memory_op) => Ok(memory_op),
-            _ => Err(Error::InvalidOpConversion),
-        }
-    }
-}
+// impl TryFrom<Operation> for MemoryOp {
+//     type Error = Error;
+//
+//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
+//         match op {
+//             Operation::Memory(memory_op) => Ok(memory_op),
+//             _ => Err(Error::InvalidOpConversion),
+//         }
+//     }
+// }
 
 /// Represents a [`READ`](RW::READ)/[`WRITE`](RW::WRITE) into the stack implied
 /// by an specific [`OpcodeId`](crate::evm::opcodes::ids::OpcodeId) of the
@@ -148,7 +150,7 @@ impl TryFrom<Operation> for MemoryOp {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StackOp {
     rw: RW,
-    gc: GlobalCounter,
+    // gc: GlobalCounter,
     addr: StackAddress,
     value: EvmWord,
 }
@@ -157,13 +159,13 @@ impl StackOp {
     /// Create a new instance of a `MemoryOp` from it's components.
     pub const fn new(
         rw: RW,
-        gc: GlobalCounter,
+        // gc: GlobalCounter,
         addr: StackAddress,
         value: EvmWord,
     ) -> StackOp {
         StackOp {
             rw,
-            gc,
+            // gc,
             addr,
             value,
         }
@@ -181,9 +183,9 @@ impl StackOp {
     }
 
     /// Returns the [`GlobalCounter`] associated to this Operation.
-    pub const fn gc(&self) -> GlobalCounter {
-        self.gc
-    }
+    // pub const fn gc(&self) -> GlobalCounter {
+    //     self.gc
+    // }
 
     /// Returns the [`StackAddress`] associated to this Operation.
     pub const fn address(&self) -> &StackAddress {
@@ -196,38 +198,34 @@ impl StackOp {
     }
 }
 
+impl Op for StackOp {
+    fn to_enum(self) -> OpEnum {
+        OpEnum::Stack(self)
+    }
+}
+
 impl PartialOrd for StackOp {
     fn partial_cmp(&self, other: &StackOp) -> Option<Ordering> {
-        match self.address().partial_cmp(other.address()) {
-            None => None,
-            Some(ord) => match ord {
-                std::cmp::Ordering::Equal => self.gc().partial_cmp(&other.gc()),
-                _ => Some(ord),
-            },
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for StackOp {
     fn cmp(&self, other: &StackOp) -> Ordering {
-        match self.address().cmp(other.address()) {
-            Ordering::Equal => self.gc().cmp(&other.gc()),
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-        }
+        self.address().cmp(other.address())
     }
 }
 
-impl TryFrom<Operation> for StackOp {
-    type Error = Error;
-
-    fn try_from(op: Operation) -> Result<Self, Self::Error> {
-        match op {
-            Operation::Stack(stack_op) => Ok(stack_op),
-            _ => Err(Error::InvalidOpConversion),
-        }
-    }
-}
+// impl TryFrom<Operation> for StackOp {
+//     type Error = Error;
+//
+//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
+//         match op {
+//             Operation::Stack(stack_op) => Ok(stack_op),
+//             _ => Err(Error::InvalidOpConversion),
+//         }
+//     }
+// }
 
 /// Represents a [`READ`](RW::READ)/[`WRITE`](RW::WRITE) into the storage
 /// implied by an specific [`OpcodeId`](crate::evm::opcodes::ids::OpcodeId) of
@@ -235,7 +233,7 @@ impl TryFrom<Operation> for StackOp {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StorageOp {
     rw: RW,
-    gc: GlobalCounter,
+    // gc: GlobalCounter,
     address: EthAddress,
     key: EvmWord,
     value: EvmWord,
@@ -246,7 +244,7 @@ impl StorageOp {
     /// Create a new instance of a `StorageOp` from it's components.
     pub const fn new(
         rw: RW,
-        gc: GlobalCounter,
+        // gc: GlobalCounter,
         address: EthAddress,
         key: EvmWord,
         value: EvmWord,
@@ -254,7 +252,7 @@ impl StorageOp {
     ) -> StorageOp {
         StorageOp {
             rw,
-            gc,
+            // gc,
             address,
             key,
             value,
@@ -274,9 +272,9 @@ impl StorageOp {
     }
 
     /// Returns the [`GlobalCounter`] associated to this Operation.
-    pub const fn gc(&self) -> GlobalCounter {
-        self.gc
-    }
+    // pub const fn gc(&self) -> GlobalCounter {
+    //     self.gc
+    // }
 
     /// Returns the [`EthAddress`] corresponding to this storage operation.
     pub const fn address(&self) -> &EthAddress {
@@ -299,6 +297,12 @@ impl StorageOp {
     }
 }
 
+impl Op for StorageOp {
+    fn to_enum(self) -> OpEnum {
+        OpEnum::Storage(self)
+    }
+}
+
 impl PartialOrd for StorageOp {
     fn partial_cmp(&self, other: &StorageOp) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -308,30 +312,28 @@ impl PartialOrd for StorageOp {
 impl Ord for StorageOp {
     fn cmp(&self, other: &StorageOp) -> Ordering {
         match self.address().cmp(&other.address()) {
-            Ordering::Equal => match self.key().cmp(&other.key()) {
-                Ordering::Equal => self.gc().cmp(&other.gc()),
-                ord => ord,
-            },
+            Ordering::Equal => self.key().cmp(&other.key()),
             ord => ord,
         }
     }
 }
 
-impl TryFrom<Operation> for StorageOp {
-    type Error = Error;
+// impl TryFrom<Operation> for StorageOp {
+//     type Error = Error;
+//
+//     fn try_from(op: Operation) -> Result<Self, Self::Error> {
+//         match op {
+//             Operation::Storage(storage_op) => Ok(storage_op),
+//             _ => Err(Error::InvalidOpConversion),
+//         }
+//     }
+// }
 
-    fn try_from(op: Operation) -> Result<Self, Self::Error> {
-        match op {
-            Operation::Storage(storage_op) => Ok(storage_op),
-            _ => Err(Error::InvalidOpConversion),
-        }
-    }
-}
-
+// DELETE
 /// Generic enum that wraps over all the operation types possible.
 /// In particular [`StackOp`], [`MemoryOp`] and [`StorageOp`].
 #[derive(Debug, Clone)]
-pub enum Operation {
+pub enum OpEnum {
     /// Doc
     Stack(StackOp),
     /// Doc
@@ -340,136 +342,182 @@ pub enum Operation {
     Storage(StorageOp),
 }
 
-impl From<&StackOp> for Operation {
-    fn from(op: &StackOp) -> Self {
-        Operation::Stack(op.clone())
+/// TODO
+#[derive(Debug, Clone)]
+pub struct Operation<T: Eq> {
+    gc: GlobalCounter,
+    op: T,
+}
+
+// // DELETE
+// impl From<&StackOp> for Operation {
+//     fn from(op: &StackOp) -> Self {
+//         Operation::Stack(op.clone())
+//     }
+// }
+//
+// // DELETE
+// impl From<StackOp> for Operation {
+//     fn from(op: StackOp) -> Self {
+//         Operation::Stack(op)
+//     }
+// }
+//
+// // DELETE
+// impl From<&MemoryOp> for Operation {
+//     fn from(op: &MemoryOp) -> Self {
+//         Operation::Memory(op.clone())
+//     }
+// }
+//
+// // DELETE
+// impl From<MemoryOp> for Operation {
+//     fn from(op: MemoryOp) -> Self {
+//         Operation::Memory(op)
+//     }
+// }
+//
+// // DELETE
+// impl From<&StorageOp> for Operation {
+//     fn from(op: &StorageOp) -> Self {
+//         Operation::Storage(op.clone())
+//     }
+// }
+//
+// // DELETE
+// impl From<StorageOp> for Operation {
+//     fn from(op: StorageOp) -> Self {
+//         Operation::Storage(op)
+//     }
+// }
+//
+// // DELETE
+// impl PartialEq for Operation {
+//     fn eq(&self, other: &Operation) -> bool {
+//         match (self, other) {
+//             (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
+//                 stack_op_1.eq(stack_op_2)
+//             }
+//             (
+//                 Operation::Memory(memory_op_1),
+//                 Operation::Memory(memory_op_2),
+//             ) => memory_op_1.eq(memory_op_2),
+//             (
+//                 Operation::Storage(storage_op_1),
+//                 Operation::Storage(storage_op_2),
+//             ) => storage_op_1.eq(storage_op_2),
+//             _ => false,
+//         }
+//     }
+// }
+
+impl<T: Eq> PartialEq for Operation<T> {
+    fn eq(&self, other: &Operation<T>) -> bool {
+        self.op.eq(&other.op) && self.gc == other.gc
     }
 }
 
-impl From<StackOp> for Operation {
-    fn from(op: StackOp) -> Self {
-        Operation::Stack(op)
+impl<T: Eq> Eq for Operation<T> {}
+
+impl<T: Ord> PartialOrd for Operation<T> {
+    fn partial_cmp(&self, other: &Operation<T>) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
-impl From<&MemoryOp> for Operation {
-    fn from(op: &MemoryOp) -> Self {
-        Operation::Memory(op.clone())
-    }
-}
-
-impl From<MemoryOp> for Operation {
-    fn from(op: MemoryOp) -> Self {
-        Operation::Memory(op)
-    }
-}
-
-impl From<&StorageOp> for Operation {
-    fn from(op: &StorageOp) -> Self {
-        Operation::Storage(op.clone())
-    }
-}
-
-impl From<StorageOp> for Operation {
-    fn from(op: StorageOp) -> Self {
-        Operation::Storage(op)
-    }
-}
-
-impl PartialEq for Operation {
-    fn eq(&self, other: &Operation) -> bool {
-        match (self, other) {
-            (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
-                stack_op_1.eq(stack_op_2)
-            }
-            (
-                Operation::Memory(memory_op_1),
-                Operation::Memory(memory_op_2),
-            ) => memory_op_1.eq(memory_op_2),
-            (
-                Operation::Storage(storage_op_1),
-                Operation::Storage(storage_op_2),
-            ) => storage_op_1.eq(storage_op_2),
-            _ => false,
+impl<T: Ord> Ord for Operation<T> {
+    fn cmp(&self, other: &Operation<T>) -> Ordering {
+        match self.op.cmp(&other.op) {
+            Ordering::Equal => self.gc.cmp(&other.gc),
+            ord => ord,
         }
     }
 }
+// impl PartialOrd for Operation {
+//     fn partial_cmp(&self, other: &Operation) -> Option<Ordering> {
+//         match (self, other) {
+//             (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
+//                 stack_op_1.partial_cmp(stack_op_2)
+//             }
+//             (
+//                 Operation::Memory(memory_op_1),
+//                 Operation::Memory(memory_op_2),
+//             ) => memory_op_1.partial_cmp(memory_op_2),
+//             (
+//                 Operation::Storage(storage_op_1),
+//                 Operation::Storage(storage_op_2),
+//             ) => storage_op_1.partial_cmp(storage_op_2),
+//             _ => None,
+//         }
+//     }
+// }
 
-impl Eq for Operation {}
-
-impl PartialOrd for Operation {
-    fn partial_cmp(&self, other: &Operation) -> Option<Ordering> {
-        match (self, other) {
-            (Operation::Stack(stack_op_1), Operation::Stack(stack_op_2)) => {
-                stack_op_1.partial_cmp(stack_op_2)
-            }
-            (
-                Operation::Memory(memory_op_1),
-                Operation::Memory(memory_op_2),
-            ) => memory_op_1.partial_cmp(memory_op_2),
-            (
-                Operation::Storage(storage_op_1),
-                Operation::Storage(storage_op_2),
-            ) => storage_op_1.partial_cmp(storage_op_2),
-            _ => None,
-        }
+impl<T: Op> Operation<T> {
+    /// TODO
+    pub fn new(gc: GlobalCounter, op: T) -> Self {
+        Self { gc, op }
     }
+
+    /// TODO
+    pub fn gc(&self) -> GlobalCounter {
+        self.gc
+    }
+    // /// Matches over an `Operation` returning the [`Target`] of the iternal op
+    // /// it stores inside.
+    // pub const fn target(&self) -> Target {
+    //     self.op.target()
+    // }
+    //     match self {
+    //         Operation::Memory(_) => Target::Memory,
+    //         Operation::Stack(_) => Target::Stack,
+    //         Operation::Storage(_) => Target::Storage,
+    //     }
+    // }
+
+    // /// Returns true if the Operation hold internally is a [`StackOp`].
+    // pub const fn is_stack(&self) -> bool {
+    //     matches!(*self, Operation::Stack(_))
+    // }
+
+    // /// Returns true if the Operation hold internally is a [`MemoryOp`].
+    // pub const fn is_memory(&self) -> bool {
+    //     matches!(*self, Operation::Memory(_))
+    // }
+
+    // /// Returns true if the Operation hold internally is a [`StorageOp`].
+    // pub const fn is_storage(&self) -> bool {
+    //     matches!(*self, Operation::Storage(_))
+    // }
+
+    // /// Transmutes the internal (unlabeled) repr of the operation contained
+    // /// inside of the enum into a [`StackOp`].
+    // pub fn into_stack_unchecked(self) -> StackOp {
+    //     match self {
+    //         Operation::Stack(stack_op) => stack_op,
+    //         _ => panic!("Broken Invariant"),
+    //     }
+    // }
+
+    // /// Transmutes the internal (unlabeled) repr of the operation contained
+    // /// inside of the enum into a [`MemoryOp`].
+    // pub fn into_memory_unchecked(self) -> MemoryOp {
+    //     match self {
+    //         Operation::Memory(memory_op) => memory_op,
+    //         _ => panic!("Broken Invariant"),
+    //     }
+    // }
+
+    // /// Transmutes the internal (unlabeled) repr of the operation contained
+    // /// inside of the enum into a [`StorageOp`].
+    // pub fn into_storage_unchecked(self) -> StorageOp {
+    //     match self {
+    //         Operation::Storage(storage_op) => storage_op,
+    //         _ => panic!("Broken Invariant"),
+    //     }
+    // }
 }
 
-impl Operation {
-    /// Matches over an `Operation` returning the [`Target`] of the iternal op
-    /// it stores inside.
-    pub const fn target(&self) -> Target {
-        match self {
-            Operation::Memory(_) => Target::Memory,
-            Operation::Stack(_) => Target::Stack,
-            Operation::Storage(_) => Target::Storage,
-        }
-    }
-
-    /// Returns true if the Operation hold internally is a [`StackOp`].
-    pub const fn is_stack(&self) -> bool {
-        matches!(*self, Operation::Stack(_))
-    }
-
-    /// Returns true if the Operation hold internally is a [`MemoryOp`].
-    pub const fn is_memory(&self) -> bool {
-        matches!(*self, Operation::Memory(_))
-    }
-
-    /// Returns true if the Operation hold internally is a [`StorageOp`].
-    pub const fn is_storage(&self) -> bool {
-        matches!(*self, Operation::Storage(_))
-    }
-
-    /// Transmutes the internal (unlabeled) repr of the operation contained
-    /// inside of the enum into a [`StackOp`].
-    pub fn into_stack_unchecked(self) -> StackOp {
-        match self {
-            Operation::Stack(stack_op) => stack_op,
-            _ => panic!("Broken Invariant"),
-        }
-    }
-
-    /// Transmutes the internal (unlabeled) repr of the operation contained
-    /// inside of the enum into a [`MemoryOp`].
-    pub fn into_memory_unchecked(self) -> MemoryOp {
-        match self {
-            Operation::Memory(memory_op) => memory_op,
-            _ => panic!("Broken Invariant"),
-        }
-    }
-
-    /// Transmutes the internal (unlabeled) repr of the operation contained
-    /// inside of the enum into a [`StorageOp`].
-    pub fn into_storage_unchecked(self) -> StorageOp {
-        match self {
-            Operation::Storage(storage_op) => storage_op,
-            _ => panic!("Broken Invariant"),
-        }
-    }
-}
-
+/*
 #[cfg(test)]
 mod operation_tests {
     use super::*;
@@ -498,3 +546,4 @@ mod operation_tests {
         assert_eq!(memory_op, memory_op_as_operation.into_memory_unchecked())
     }
 }
+*/

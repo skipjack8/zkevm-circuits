@@ -208,3 +208,17 @@ pub use error::Error;
 pub use exec_trace::{BlockConstants, ExecutionStep, ExecutionTrace};
 /// Gas is exported as a type alias for u64
 pub type Gas = u64;
+
+// impl Gas {
+//     /// TODO
+//     pub fn add(&mut self, n: u64) {
+//         self += n;
+//     }
+//
+//     /// Add n to Self and return the value before the addition.
+//     pub fn add_pre(&mut self) -> Self {
+//         let pre = self;
+//         self.add(n);
+//         pre
+//     }
+// }
